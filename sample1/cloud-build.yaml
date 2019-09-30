@@ -1,0 +1,43 @@
+# Cloud Build で取得してきた zip ファイルを展開し、
+# awk でファイルを必要な形に変更して出力するというサンプル
+
+steps:
+
+  # 外部のサイトから zip ファイルを取得する
+  - name: 'appropriate/curl'
+    args:
+      - 'http://eforexcel.com/wp/wp-content/uploads/2017/07/50000-Sales-Records.zip'
+      - '-o'
+      - 'target.zip'
+    id: 'step_1'
+
+#  # デバッグはこんな感じでファイルが存在しているかなど実行できます
+#  - name: 'ubuntu:19.10'
+#    entrypoint: 'bash'
+#    args:
+#      - '-c'
+#      - |
+#        ls -al
+#    id: 'step_debug_1'
+
+  # 取得したファイルを unzip する
+  - name: 'garthk/unzip'
+    args:
+      - 'target.zip'
+    id: 'step_2'
+
+  # awk を利用して、一番最初のカラムと一番最後のカラムだけ抽出してcsvファイルを出力する
+  - name: 'ubuntu:19.10'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        awk -F, -v 'OFS=,' '{ print $1, $$NF }' *.csv > result.csv
+    id: 'step_3'
+
+# 生成したファイルを gcs に出力する
+artifacts:
+  objects:
+    location: 'gs://$_BUCKET'
+    paths: ['result.csv']
+
