@@ -15,3 +15,9 @@ Cloud Build Dayのデモ用
 ```
 make run-sample1
 ```
+
+実際に実行するコマンド
+
+```
+gcloud builds submit --config sample1/cloud-build.yaml --project $(PROJECT_ID) --substitutions _BUCKET=$(BUCKET) .
+```
